@@ -2,7 +2,6 @@ import requests
 
 class BackendError(Exception):
     pass
-#make some error handling thingies
 
 def post_user_verify(email):
     url = "https://accounts.pronto.io/api/v1/user.verify"
@@ -20,7 +19,9 @@ def post_user_verify(email):
 email = "example@ohs.stanford.edu"
 
 try:
+    print("Requesting verification code for", email)
     result = post_user_verify(email)
     print("Verification email sent:", result)
+    print(f"Please check {email} for the verification code.")
 except BackendError as e:
     print(e)
