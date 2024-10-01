@@ -1,4 +1,4 @@
-import requests
+import requests, time
 
 class BackendError(Exception):
     pass
@@ -20,7 +20,11 @@ email = "example@ohs.stanford.edu"
 
 try:
     print("Requesting verification code for", email)
+    request_start_time = time.time()
     result = post_user_verify(email)
+    request_end_time = time.time()
+    total_time = request_end_time - request_start_time
+    print(f"Request took {total_time:.2f} seconds.")
     print("Verification email sent:", result)
     print(f"Please check {email} for the verification code.")
 except BackendError as e:
