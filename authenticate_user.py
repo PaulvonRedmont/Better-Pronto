@@ -9,6 +9,21 @@ logger = logging.getLogger(__name__)
 class BackendError(Exception):
     pass
 
+class DeviceInfo:
+    def __init__(self, browsername, browserversion, osname, type, uuid, osversion, appversion):
+        self.browsername = browsername
+        self.browserversion = browserversion
+        self.osname = osname
+        self.type = type
+        self.uuid = uuid
+        self.osversion = osversion
+        self.appversion = appversion
+
+class TokenLoginRequest:
+    def __init__(self, login_tokens, device):
+        self.login_tokens = login_tokens
+        self.device = device.__dict__
+
 def post_user_verify(email):
     url = "https://accounts.pronto.io/api/v1/user.verify"
     payload = {"email": email}
@@ -21,28 +36,23 @@ def post_user_verify(email):
     except Exception as err:
         raise BackendError(f"An error occurred: {err}")
 
-def get_device_info():
-    return {
-        "browsername": "firefox",
-        "browserversion": "130.0.0",
-        "osname": "macOS",
-        "type": "WEB",
-        "uuid": "314c9314-d5e5-4ae4-84e2-9f2f3938ca28",
-        "osversion": "10.15.6",
-        "appversion": "1.0.0"
-    }
+def token_login(email, code):
+    url = "https://accounts.pronto.io/api/v1/user.tokenlogin"
+    device_info = DeviceInfo(
+        browsername="firefox",
+        browserversion="130.0.0",
+        osname="macOS",
+        type="WEB",
+        uuid="314c9314-d5e5-4ae4-84e2-9f2f3938ca28",
+        osversion="10.15.6",
+        appversion="1.0.0"
+    )
+    request_payload = TokenLoginRequest([code], device_info)
 
-def token_login(token, device_info):
-    url = "https://accounts.pronto.io/api/v1/user.tokenlogin"  # Adjusted URL
-    payload = {
-        "login_tokens": [token],
-        "device": device_info
-    }
+    logger.info(f"Payload being sent: {request_payload.__dict__}")
 
-    logger.info(f"Payload being sent: {payload}")
-    
     try:
-        response = requests.post(url, json=payload)
+        response = requests.post(url, json=request_payload.__dict__)
         response.raise_for_status()
         logger.info("Login successful")
         return response.json()
@@ -73,12 +83,19 @@ def main():
         return
 
     # Prompting the user to enter the verification code
-    token = input("Please enter the verification code you received: ")
+    code = input("Please enter the verification code you received: ")
 
-    device_info = get_device_info()
-    result = token_login(token, device_info)
+    result = token_login(email, code)
     if result:
         logger.info(f"User authenticated: {result}")
+        token = result.get('users', [{}])[0].get('login_token')
+        if token:
+            logger.info(f"Received login token: {token}")
+            # Save token for future use
+            with open("login_token.txt", "w") as file:
+                file.write(token)
+        else:
+            logger.error("Login token missing in the response")
     else:
         logger.error("Authentication failed")
 
