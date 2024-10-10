@@ -2,47 +2,21 @@ import requests
 import logging
 import time
 from dataclasses import dataclass, asdict
-from typing import List, Optional
 
 # Dataclasses for the response and structure of the request payload
-@dataclass
-class UserInfo:
-    id: int
-    username: str
-    email: str
-
-@dataclass
-class LoginUser:
-    user: UserInfo
-    login_token: str
-    token_expiration: str
-
-@dataclass
-class UserLoginResponse:
-    ok: bool
-    users: List[LoginUser]
-
-# Configure logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
-
-class BackendError(Exception):
-    pass
-
 @dataclass
 class DeviceInfo:
     browsername: str
     browserversion: str
     osname: str
     type: str
-    uuid: str
-    osversion: str
-    appversion: str
 
-@dataclass
-class TokenLoginRequest:
-    login_tokens: List[str]
-    device: dict
+class BackendError(Exception):
+    pass
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 def post_user_verify(email):
     url = "https://accounts.pronto.io/api/v1/user.verify"
@@ -61,29 +35,28 @@ def post_user_verify(email):
         logger.error(f"An unexpected error occurred: {err}")
         raise BackendError(f"An unexpected error occurred: {err}")
 
-def token_login(verification_code):
-    url = "https://accounts.pronto.io/api/v1/user.tokenlogin"
+def token_login(email, verification_code):
+    url = "https://accounts.pronto.io/api/v3/user.login"
     device_info = DeviceInfo(
-        browsername="firefox",
+        browsername="Firefox",
         browserversion="130.0.0",
-        osname="macOS",
-        type="WEB",
-        uuid="314c9314-d5e5-4ae4-84e2-9f2f3938ca28",
-        osversion="10.15.6",
-        appversion="1.0.0"
+        osname="Windows",
+        type="WEB"
     )
-    request_payload = TokenLoginRequest([verification_code], asdict(device_info))
+    request_payload = {
+        "email": email,
+        "code": verification_code,
+        "device": asdict(device_info)
+    }
     
-    # Set headers with authorization
     headers = {
-        "Authorization": f"Bearer {verification_code}",
         "Content-Type": "application/json"
     }
 
-    logger.info(f"Payload being sent: {asdict(request_payload)}")
+    logger.info(f"Payload being sent: {request_payload}")
 
     try:
-        response = requests.post(url, json=asdict(request_payload), headers=headers)
+        response = requests.post(url, json=request_payload, headers=headers)
         response.raise_for_status()
         return response.json()
     except requests.exceptions.HTTPError as http_err:
@@ -97,7 +70,7 @@ def token_login(verification_code):
         raise BackendError(f"An unexpected error occurred: {err}")
 
 def main():
-    email = "paul257@ohs.stanford.edu"
+    email = ur email here@ohs.stanford.edu"
 
     try:
         print("Requesting verification code for", email)
@@ -112,17 +85,15 @@ def main():
         logger.error(e)
         return
 
-    # Prompting the user to enter the verification code
     verification_code = input("Please enter the verification code you received: ").strip()
 
     try:
-        result = token_login(verification_code)
-        if result:
+        result = token_login(email, verification_code)
+        if result.get("ok"):
             logger.info(f"User authenticated: {result}")
             pronto_api_token = result.get('users', [{}])[0].get('login_token')
             if pronto_api_token:
                 logger.info(f"Received login token: {pronto_api_token}")
-                # Save token for future use
                 try:
                     with open("login_token.txt", "w") as file:
                         file.write(pronto_api_token)
@@ -131,7 +102,7 @@ def main():
             else:
                 logger.error("Login token not found in response")
         else:
-            logger.error("Authentication failed")
+            logger.error(f"Authentication failed: {result.get('error', 'Unknown error')}")
     except BackendError as e:
         logger.error(e)
 
