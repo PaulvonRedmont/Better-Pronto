@@ -1,10 +1,30 @@
-import requests
-import logging
-import time
+import requests, logging, time
+from dataclasses import dataclass
+from typing import List, Optional
+
+# Dataclasses for the response and structure of the request payload
+@dataclass
+class UserInfo:
+    id: int
+    username: str
+    email: str
+
+@dataclass
+class LoginUser:
+    user: UserInfo
+    login_token: str
+    token_expiration: str
+
+@dataclass
+class UserLoginResponse:
+    ok: bool
+    users: List[LoginUser]
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+
 
 class BackendError(Exception):
     pass
@@ -32,11 +52,16 @@ def post_user_verify(email):
         response.raise_for_status()
         return response.json()
     except requests.exceptions.HTTPError as http_err:
+        logger.error(f"HTTP error occurred: {http_err} - Response: {response.text}")
         raise BackendError(f"HTTP error occurred: {http_err}")
+    except requests.exceptions.RequestException as req_err:
+        logger.error(f"Request exception occurred: {req_err}")
+        raise BackendError(f"Request exception occurred: {req_err}")
     except Exception as err:
-        raise BackendError(f"An error occurred: {err}")
+        logger.error(f"An unexpected error occurred: {err}")
+        raise BackendError(f"An unexpected error occurred: {err}")
 
-def token_login(email, code):
+def token_login(verification_code):
     url = "https://accounts.pronto.io/api/v1/user.tokenlogin"
     device_info = DeviceInfo(
         browsername="firefox",
@@ -47,23 +72,26 @@ def token_login(email, code):
         osversion="10.15.6",
         appversion="1.0.0"
     )
-    request_payload = TokenLoginRequest([code], device_info)
+    request_payload = TokenLoginRequest([verification_code], device_info)
+    
+    # Set headers with authorization
+    headers = {
+        "Authorization": f"Bearer {verification_code}",  # Use the actual token
+        "Content-Type": "application/json"
+    }
 
     logger.info(f"Payload being sent: {request_payload.__dict__}")
 
     try:
-        response = requests.post(url, json=request_payload.__dict__)
+        response = requests.post(url, json=request_payload.__dict__, headers=headers)
         response.raise_for_status()
-        logger.info("Login successful")
         return response.json()
     except requests.exceptions.HTTPError as http_err:
-        logger.error(f"HTTP error occurred: {http_err} - Response: {http_err.response.text}")
-    except requests.exceptions.ConnectionError as conn_err:
-        logger.error(f"Connection error occurred: {conn_err}")
-    except requests.exceptions.Timeout as timeout_err:
-        logger.error(f"Timeout error occurred: {timeout_err}")
+        logger.error(f"HTTP error occurred: {http_err} - Response: {response.text}")
     except requests.exceptions.RequestException as req_err:
-        logger.error(f"An error occurred: {req_err}")
+        logger.error(f"Request exception occurred: {req_err}")
+    except Exception as err:
+        logger.error(f"An unexpected error occurred: {err}")
     return None
 
 def main():
@@ -83,19 +111,19 @@ def main():
         return
 
     # Prompting the user to enter the verification code
-    code = input("Please enter the verification code you received: ")
+    verification_code = input("Please enter the verification code you received: ")
 
-    result = token_login(email, code)
+    result = token_login(verification_code)
     if result:
         logger.info(f"User authenticated: {result}")
-        token = result.get('users', [{}])[0].get('login_token')
-        if token:
-            logger.info(f"Received login token: {token}")
+        pronto_api_token = result.get('users', [{}])[0].get('login_token')
+        if pronto_api_token:
+            logger.info(f"Received login token: {pronto_api_token}")
             # Save token for future use
             with open("login_token.txt", "w") as file:
-                file.write(token)
+                file.write(pronto_api_token)
         else:
-            logger.error("Login token missing in the response")
+            logger.error("Login token not found in response")
     else:
         logger.error("Authentication failed")
 
