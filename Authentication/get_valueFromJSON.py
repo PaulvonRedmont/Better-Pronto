@@ -1,3 +1,5 @@
+import json
+
 def search_key(data, target_key):
     """
     Recursively search for a key in a nested dictionary and return its value.
@@ -21,3 +23,34 @@ def search_key(data, target_key):
                         if result is not None:
                             return result
     return None
+
+def load_data_from_file(file_path):
+    """
+    Load JSON data from a file.
+    
+    :param file_path: The path to the file.
+    :return: The loaded data, or an error message if the file could not be loaded.
+    """
+    try:
+        with open(file_path, 'r') as file:
+            data = json.load(file)
+        return data
+    except FileNotFoundError:
+        return "File not found."
+    except json.JSONDecodeError:
+        return "Error decoding JSON."
+
+# Example usage
+if __name__ == "__main__":
+    file_path = r'C:\Users\paul\Desktop\Better Pronto\dictionary_response.txt'
+    data = load_data_from_file(file_path)
+    
+    if isinstance(data, dict):
+        key_to_search = "logintoken"
+        value = search_key(data, key_to_search)
+        if value is not None:
+            print(f"Value for '{key_to_search}': {value}")
+        else:
+            print(f"Key '{key_to_search}' not found.")
+    else:
+        print(data)
