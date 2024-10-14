@@ -2,6 +2,7 @@ import requests
 import logging
 import time
 from dataclasses import dataclass, asdict
+import json  # Import json for handling JSON data
 
 # Dataclasses for the response and structure of the request payload
 @dataclass
@@ -52,12 +53,22 @@ def token_login(email, verification_code):
         logger.error(f"An unexpected error occurred: {err}")
         raise BackendError(f"An unexpected error occurred: {err}")
 
-email = "paul257@ohs.stanford.edu"
+def save_response_to_file(response_data, file_path):
+    """Saves the response data to a specified file."""
+    try:
+        with open(file_path, "w") as file:
+            json.dump(response_data, file, indent=4)  # Write the response as JSON
+        logger.info(f"Response data saved to {file_path}")
+    except IOError as io_err:
+        logger.error(f"File write error: {io_err}")
+
+email = "example@ohs.stanford.edu"
 
 def main():
     verification_code = input("Please enter the verification code you received: ").strip()
     try:
         result = token_login(email, verification_code)
+        save_response_to_file(result, r"C:\Users\paul\Desktop\Better Pronto\dictionary_response.txt")  # Save the response
         if result.get("ok"):
             logger.info(f"User authenticated: {result}")
             pronto_api_token = result.get('users', [{}])[0].get('login_token')
