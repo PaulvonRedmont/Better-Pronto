@@ -18,7 +18,6 @@ class BackendError(Exception):
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-
 def token_login(email, verification_code):
     url = "https://accounts.pronto.io/api/v3/user.login"
     device_info = DeviceInfo(
@@ -53,7 +52,7 @@ def token_login(email, verification_code):
         logger.error(f"An unexpected error occurred: {err}")
         raise BackendError(f"An unexpected error occurred: {err}")
 
-email = "example@ohs.stanford.edu"
+email = "paul257@ohs.stanford.edu"
 
 def main():
     verification_code = input("Please enter the verification code you received: ").strip()
