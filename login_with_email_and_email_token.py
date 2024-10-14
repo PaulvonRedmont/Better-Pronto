@@ -53,7 +53,7 @@ def token_login(email, verification_code):
         logger.error(f"An unexpected error occurred: {err}")
         raise BackendError(f"An unexpected error occurred: {err}")
 
-email = "paul257@ohs.stanford.edu"
+email = "example@ohs.stanford.edu"
 
 def main():
     verification_code = input("Please enter the verification code you received: ").strip()
