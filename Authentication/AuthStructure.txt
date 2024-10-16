@@ -1,0 +1,5 @@
+Request Auth Email
+└── 6-digit Code
+          └── Login Token
+                   └── Access Token
+                              └──Access Resources (finally!)
