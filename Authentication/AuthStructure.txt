@@ -1,5 +1,5 @@
 Request Auth Email
-└── 6-digit Code
-          └── Login Token
-                   └── Access Token
-                              └──Access Resources (finally!)
+└── 6-digit Code [getAuthenticationEmail.py]
+          └── Login Token [getLoginTokenfromEmail.py]
+                   └── Access Token [getAccessToken.py]
+                              └──Access Resources (finally!) [coming soon]
