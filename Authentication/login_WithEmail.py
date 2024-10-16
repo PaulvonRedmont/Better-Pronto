@@ -1,8 +1,5 @@
-import requests
-import logging
-import time
+import requests, logging, time, json
 from dataclasses import dataclass, asdict
-import json  # Import json for handling JSON data
 
 # Dataclasses for the response and structure of the request payload
 @dataclass
@@ -62,12 +59,16 @@ def save_response_to_file(response_data, file_path):
     except IOError as io_err:
         logger.error(f"File write error: {io_err}")
 
-email = "example@ohs.stanford.edu"
+email = "paul257@ohs.stanford.edu"
 
 def main():
     verification_code = input("Please enter the verification code you received: ").strip()
     try:
+        start_time = time.time()
         result = token_login(email, verification_code)
+        end_time = time.time()
+        total_time = end_time - start_time
+        print(f"Time to get response: {total_time} seconds.")
         save_response_to_file(result, r"C:\Users\paul\Desktop\Better Pronto\dictionary_response.txt")  # Save the response
         if result.get("ok"):
             logger.info(f"User authenticated: {result}")
