@@ -61,7 +61,7 @@ def load_and_search(file_path, target_key):
 
 # Example usage
 if __name__ == "__main__":
-    file_path = r'C:\Users\paul\Desktop\Better Pronto\dictionary_response.txt'
+    file_path = r"C:\Users\paul\Desktop\Better Pronto\authToken_Response.txt"
     key_to_search = "logintoken"
     result = load_and_search(file_path, key_to_search)
     print(result)
