@@ -69,7 +69,7 @@ def main():
         end_time = time.time()
         total_time = end_time - start_time
         print(f"Time to get response: {total_time} seconds.")
-        save_response_to_file(result, r"C:\Users\paul\Desktop\Better Pronto\dictionary_response.txt")  # Save the response
+        save_response_to_file(result, r"C:\Users\paul\Desktop\Better Pronto\authToken_Response.txt")  # Save the response
         if result.get("ok"):
             logger.info(f"User authenticated: {result}")
             pronto_api_token = result.get('users', [{}])[0].get('login_token')
