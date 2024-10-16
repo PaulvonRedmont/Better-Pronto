@@ -40,17 +40,28 @@ def load_data_from_file(file_path):
     except json.JSONDecodeError:
         return "Error decoding JSON."
 
-# Example usage
-if __name__ == "__main__":
-    file_path = r'C:\Users\paul\Desktop\Better Pronto\dictionary_response.txt'
+def load_and_search(file_path, target_key):
+    """
+    Load JSON data from a file and search for a key in the loaded data.
+    
+    :param file_path: The path to the file.
+    :param target_key: The key to search for.
+    :return: The value associated with the key, or an error message if the file could not be loaded or the key is not found.
+    """
     data = load_data_from_file(file_path)
     
     if isinstance(data, dict):
-        key_to_search = "logintoken"
-        value = search_key(data, key_to_search)
+        value = search_key(data, target_key)
         if value is not None:
-            print(f"Value for '{key_to_search}': {value}")
+            return value
         else:
-            print(f"Key '{key_to_search}' not found.")
+            return f"Key '{target_key}' not found."
     else:
-        print(data)
+        return data
+
+# Example usage
+if __name__ == "__main__":
+    file_path = r'C:\Users\paul\Desktop\Better Pronto\dictionary_response.txt'
+    key_to_search = "logintoken"
+    result = load_and_search(file_path, key_to_search)
+    print(result)
