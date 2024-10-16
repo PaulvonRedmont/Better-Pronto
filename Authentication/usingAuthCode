@@ -1,4 +1,4 @@
-import requests, time
+import requests, time, json
 from dataclasses import dataclass, asdict
 from get_value_fromJSON import load_and_search
 
@@ -49,5 +49,12 @@ print(f"Request sent in {total_time} seconds")
 # Check the response
 if response.status_code == 200:
     print("Success:", response.json())
+    response_data = response.json()
 else:
     print(f"Error: {response.status_code} - {response.text}")
+    response_data = {"error": response.status_code, "message": response.text}
+
+# Save the response to a file in JSON format
+response_file_path = r'C:\Users\paul\Desktop\Better Pronto\authToken_Response.txt'
+with open(response_file_path, 'w') as file:
+    json.dump(response_data, file, indent=4)
